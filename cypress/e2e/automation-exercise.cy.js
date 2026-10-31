@@ -1,0 +1,122 @@
+/// <reference types="cypress" />
+const navegacao = require('../modules/navegacao')
+const cadastro = require('../modules/cadastro')
+const login = require('../modules/login')
+const produtos = require('../modules/produtos')
+const inscricao = require('../modules/inscricao')
+const compra = require('../modules/compra')
+const { novoUsuario, pagamento, termoBusca } = require('../fixtures/dados')
+
+describe('Trabalho final PGATS - Automation Exercise', () => {
+  beforeEach(() => navegacao.abrirHome())
+
+  it('Caso 1 - Cadastra um usuário completo, confirma sua identidade e exclui a própria conta', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.validarUsuario(usuario)
+    cadastro.excluirConta()
+  })
+
+  it('Caso 5 - Impede novo cadastro com um e-mail já registrado', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.sair()
+    login.validarSessaoEncerrada()
+    cadastro.validarNovoCadastro()
+    cadastro.iniciar(usuario)
+    cadastro.validarEmailExistente()
+    login.entrar(usuario)
+    login.validarUsuario(usuario)
+    cadastro.excluirConta()
+  })
+
+  it('Caso 3 - Rejeita login com e-mail e senha incorretos e mantém o usuário desconectado', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    login.validarTela()
+    login.entrar({ ...usuario, senha: 'SenhaIncorreta' })
+    login.validarErro()
+  })
+
+  it('Caso 2 - Autentica com credenciais válidas e confirma a exclusão da própria conta', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.sair()
+    login.validarSessaoEncerrada()
+    login.validarTela()
+    login.entrar(usuario)
+    login.validarUsuario(usuario)
+    cadastro.excluirConta()
+  })
+
+  it('Caso 4 - Encerra a sessão autenticada e retorna à página de login', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.sair()
+    login.validarSessaoEncerrada()
+    login.entrar(usuario)
+    login.validarUsuario(usuario)
+    login.sair()
+    login.validarSessaoEncerrada()
+    login.entrar(usuario)
+    cadastro.excluirConta()
+  })
+
+  it('Caso 8 - Exibe o catálogo e nome, categoria, preço, disponibilidade, condição e marca do primeiro produto', () => {
+    navegacao.abrirProdutos()
+    produtos.validarCatalogo()
+    produtos.abrirPrimeiroProduto()
+    produtos.validarDetalhes()
+  })
+
+  it('Caso 9 - Pesquisa produtos e exibe todos os itens relacionados ao termo informado', () => {
+    navegacao.abrirProdutos()
+    produtos.validarCatalogo()
+    produtos.buscar(termoBusca)
+    produtos.validarBusca(termoBusca)
+  })
+
+  it('Caso 10 - Inscreve um e-mail fictício no rodapé da home e confirma o sucesso', () => {
+    inscricao.inscrever(novoUsuario().email)
+    inscricao.validarSucesso()
+  })
+
+  it('Caso 15 - Cadastra antes do checkout, confere endereços e produtos, conclui a compra e exclui a conta', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.validarUsuario(usuario)
+    produtos.adicionarDoisAoCarrinho()
+    navegacao.abrirCarrinho()
+    compra.validarCarrinho()
+    compra.iniciarCheckout()
+    compra.validarCheckout(usuario)
+    compra.confirmarPedido('Pedido fictício do caso 15 - PGATS')
+    compra.pagar(pagamento)
+    compra.validarPedidoConcluido()
+    cadastro.excluirConta()
+  })
+
+  it('Caso 16 - Faz login antes do checkout, confere endereços e produtos, conclui a compra e exclui a conta', () => {
+    const usuario = novoUsuario()
+    navegacao.abrirLogin()
+    cadastro.cadastrar(usuario)
+    login.sair()
+    login.validarSessaoEncerrada()
+    login.entrar(usuario)
+    login.validarUsuario(usuario)
+    produtos.adicionarDoisAoCarrinho()
+    navegacao.abrirCarrinho()
+    compra.validarCarrinho()
+    compra.iniciarCheckout()
+    compra.validarCheckout(usuario)
+    compra.confirmarPedido('Pedido fictício do caso 16 - PGATS')
+    compra.pagar(pagamento)
+    compra.validarPedidoConcluido()
+    cadastro.excluirConta()
+  })
+})

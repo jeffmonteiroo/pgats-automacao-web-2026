@@ -1,0 +1,16 @@
+{
+  "name": "pgats-automacao-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Trabalho final PGATS - dez casos E2E do Automation Exercise",
+  "scripts": {
+    "test": "cypress run",
+    "test:open": "cypress open",
+    "test:chrome": "cypress run --browser chrome"
+  },
+  "engines": { "node": ">=22" },
+  "devDependencies": {
+    "cypress": "13.17.0",
+    "cypress-mochawesome-reporter": "3.8.2"
+  }
+}

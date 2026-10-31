@@ -1,0 +1,34 @@
+name: Testes E2E - PGATS
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cypress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Executar os dez casos
+        run: npm test
+      - name: Preservar relatório HTML e capturas de falha
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-e2e
+          path: |
+            cypress/reports/
+            cypress/screenshots/
+          retention-days: 3
+          if-no-files-found: error
