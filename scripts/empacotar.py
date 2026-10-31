@@ -5,7 +5,7 @@ import zipfile
 
 raiz = Path(__file__).resolve().parent.parent
 relatorio = raiz / 'cypress/reports/html/relatorio.html'
-dados = raiz / 'cypress/reports/html/.jsons/relatorio.json'
+dados = raiz / 'cypress/reports/html/relatorio.json'
 resultado = json.loads(dados.read_text())
 stats = resultado['stats']
 assert stats['tests'] == stats['passes'] == 10, 'A entrega requer dez casos aprovados.'
