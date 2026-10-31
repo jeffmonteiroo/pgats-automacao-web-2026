@@ -1,6 +1,6 @@
 # PGATS - Automação de Testes Web
 
-Trabalho final da disciplina de Automação de Testes na Camada de Interface (Web), turma PGATS-2026-03. Implementa os casos **1, 2, 3, 4, 5, 8, 9, 10, 15 e 16** do [Automation Exercise](https://automationexercise.com/test_cases).
+Trabalho da disciplina de Automação de Testes na Camada de Interface (Web), turma PGATS-2026-03. Automatiza os casos **1, 2, 3, 4, 5, 8, 9, 10, 15 e 16** do [Automation Exercise](https://automationexercise.com/test_cases).
 
 ## Executar
 
@@ -11,9 +11,9 @@ npm ci
 npm test
 ```
 
-Para acompanhar a execução na interface: `npm run test:open`. Para usar o Chrome instalado: `npm run test:chrome`.
+Para abrir o Cypress: `npm run test:open`. Para executar no Chrome: `npm run test:chrome`.
 
-O relatório é gerado em `cypress/reports/html/relatorio.html`, com recursos incorporados. Abra esse HTML no navegador após a execução. Capturas de falhas são incorporadas ao relatório. Os testes rodam sem repetição automática; uma falha não é ocultada por retries.
+Abra `cypress/reports/html/relatorio.html` no navegador para consultar os resultados e as capturas de falha. Os testes rodam sem repetição automática (`retries: 0`).
 
 ## Organização
 
@@ -25,7 +25,7 @@ O relatório é gerado em `cypress/reports/html/relatorio.html`, com recursos in
 | `cypress/support/e2e.js` | Integração do relatório |
 | `.github/workflows/e2e.yml` | Execução automatizada e artifact do relatório |
 
-Cada módulo exporta funções com `module.exports`, centraliza seletores em `const seletores = {}` e contém suas validações. Usa `data-qa` onde a aplicação oferece esse atributo; nos demais elementos, atributos de domínio, identificadores e seletores limitados ao contexto. A posição do produto só é usada para o primeiro produto do caso 8 e para escolher dois itens na compra.
+Os módulos usam `module.exports`, seletores em `const seletores = {}` e validações com `should`. A spec chama essas funções e passa os dados. Os elementos usam `data-qa` quando disponível; os demais seletores ficam limitados à área da página em que são usados.
 
 ## Cobertura
 
@@ -42,30 +42,31 @@ Cada módulo exporta funções com `module.exports`, centraliza seletores em `co
 | 15 | Cadastro antes do checkout, endereços, dois produtos, pagamento fictício e exclusão |
 | 16 | Login antes do checkout, endereços, dois produtos, pagamento fictício e exclusão |
 
-Cada cenário cria sua própria identidade com e-mail único em `example.com`. Os casos que precisam de usuário existente o cadastram na mesma execução, pela interface, e encerram a sessão antes do login avaliado. Não há dependência de conta deixada por outro teste. Os casos com cadastro excluem sua conta ao concluir; se uma falha interromper o fluxo, a conta sintética pode permanecer no ambiente de treinamento. A inscrição do caso 10 não possui cancelamento documentado.
+## Dados e decisões
 
-A busca usa `Jeans`, termo conferido no catálogo. Compara os nomes retornados com os nomes correspondentes do catálogo lido imediatamente antes da busca, sem fixar quantidade. A busca do site também considera categorias; por isso o termo `top` não é usado como se fosse uma correspondência exclusiva pelo nome.
-
-Os casos de compra usam exclusivamente dados fictícios da loja de treinamento. O sucesso é verificado na página final do pedido: `Order Placed!` e `Congratulations! Your order has been confirmed!`, mensagens atuais da aplicação.
-
-O Cypress bloqueia hosts de publicidade (`doubleclick.net`, `googlesyndication.com` e `googleadservices.com`) para que anúncios externos não interrompam a navegação. As respostas da loja, os cadastros, os produtos, a busca e os pedidos são reais no ambiente fictício; não são substituídos por mocks. Exceções da aplicação continuam fazendo o teste falhar.
+- Cada teste gera um e-mail novo em `example.com`. Os cenários de login e cadastro duplicado criam sua própria conta pela interface antes de começar o fluxo avaliado.
+- As contas são excluídas ao concluir cada caso. Se o teste falhar antes da exclusão, a conta fictícia pode permanecer no site. O caso 10 não tem cancelamento de inscrição documentado.
+- A busca usa `Jeans`. Os resultados são comparados com os nomes correspondentes no catálogo lido antes da busca, sem fixar a quantidade. O site também pesquisa por categoria, por isso `top` retornava nomes que não continham essa palavra.
+- Os casos 15 e 16 conferem os endereços de entrega e cobrança, os dois produtos, preços, quantidades e totais. Usam cartão fictício e validam `Order Placed!` e a confirmação na página final.
+- Os hosts de publicidade são bloqueados para evitar anúncios sobre os botões. Os fluxos da loja usam as respostas reais do site de treinamento, sem mocks. Erros da aplicação fazem o teste falhar.
 
 ## GitHub Actions
 
-O workflow executa em push, pull request e acionamento manual. Instala pelo lockfile, roda `npm test` e tenta publicar `relatorio-e2e` mesmo em caso de falha, com retenção de três dias. Na aba Actions, abra a execução e baixe o artifact para consultar o HTML. Publicar artifacts depende da cota de armazenamento disponível na conta GitHub.
+O workflow roda em push, pull request e acionamento manual. Usa Node 22, instala com `npm ci`, executa `npm test` e salva o relatório no artifact `relatorio-e2e` por três dias. Na aba Actions, abra a execução e baixe o artifact para consultar o HTML.
 
 ## Entrega
 
-Enviar à atividade da plataforma PGATS o ZIP do projeto e a URL do repositório. O ZIP deve conter fontes, configuração, lockfile, README, workflow e relatório verificado, sem `node_modules`. O formulário informa limite de **10 MB**.
+Enviar o ZIP do projeto e a URL do repositório à atividade da plataforma PGATS. Limite do anexo: **10 MB**.
 
-Depois de uma execução com os dez casos aprovados, `python3 scripts/empacotar.py` gera `entrega/pgats-automacao-web.zip`. O script confere o JSON da execução, inclui o relatório HTML em `evidencias/`, verifica a integridade e o limite de tamanho e mantém dependências, cache e histórico Git fora do ZIP.
+Após os dez casos passarem, `python3 scripts/empacotar.py` gera `entrega/pgats-automacao-web.zip` com fontes, configuração e relatório. O script confere os resultados, a integridade e o tamanho do ZIP. A pasta `node_modules` fica fora da entrega.
 
-O enunciado define **31/10/2026 às 23:59:59**, sem informar fuso horário. O trabalho é individual. Não é necessário implantar um site.
+Prazo: **31/10/2026 às 23:59:59**, sem fuso informado no enunciado. Trabalho individual.
 
 ## Referências
 
 - [Casos oficiais do Automation Exercise](https://automationexercise.com/test_cases)
 - [Configuração do Cypress](https://docs.cypress.io/app/references/configuration)
 - [Integração do cypress-mochawesome-reporter](https://github.com/LironEr/cypress-mochawesome-reporter)
+- [Entrega pública consultada para comparar a estrutura](https://github.com/vhafgp/pgats-automacao-web-2026/tree/318c367dad09d724bc239afe97364b8509315842)
 
 Os fluxos iniciais de cadastro e autenticação foram adaptados do exercício anterior do próprio aluno, `automation-exercise-xpath/comparacao/automation-exercise-css.cy.js`, para a arquitetura modular deste trabalho.
